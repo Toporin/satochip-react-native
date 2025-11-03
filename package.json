@@ -1,0 +1,50 @@
+{
+  "name": "satochip-react-native",
+  "version": "0.1.0",
+  "description": "Satochip protocol support in javascript",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "prepare": "echo skip",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "prettier": "npx prettier --write .",
+    "lint": "npx eslint '**/*.ts' --ignore-pattern node_modules/"
+  },
+  "keywords": [
+    "satochip",
+    "nfc"
+  ],
+  "author": "Praneeth G",
+  "license": "MIT",
+  "dependencies": {
+    "@peculiar/webcrypto": "^1.5.0",
+    "@peculiar/x509": "^1.14.0",
+    "bech32": "2.0.0",
+    "bip32": "4.0.0",
+    "bs58": "5.0.0",
+    "buf-b32": "2.2.0",
+    "buffer-xor": "2.0.2",
+    "elliptic": "^6.6.1",
+    "js-sha256": "0.9.0",
+    "ripemd160": "2.0.2",
+    "secp256k1": "4.0.3",
+    "typescript": "4.7.4"
+  },
+  "peerDependencies": {
+    "react-native": ">=0.60.0",
+    "react-native-nfc-manager": ">=3.13.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.18.10",
+    "@babel/plugin-transform-export-namespace-from": "^7.27.1",
+    "@babel/preset-env": "^7.18.10",
+    "@babel/preset-typescript": "^7.18.6",
+    "@types/node": "^18.0.6",
+    "@typescript-eslint/eslint-plugin": "^5.32.0",
+    "@typescript-eslint/parser": "^5.32.0",
+    "babel-jest": "^28.1.3",
+    "eslint": "^8.21.0",
+    "install-peers-cli": "^2.2.0",
+    "jest": "^28.1.3"
+  }
+}

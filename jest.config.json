@@ -1,0 +1,7 @@
+{
+  "clearMocks": true,
+  "testEnvironment": "jest-environment-node",
+  "transformIgnorePatterns": [
+    "node_modules/(?!(react-native|react-native-nfc-manager)/)"
+  ]
+}
