@@ -146,12 +146,6 @@ export async function cardBip32GetXpub(
     throw new Error(`Unsupported xtype: ${xtype}. Must be one of: ${SUPPORTED_XTYPES.join(', ')}`);
   }
 
-  // Get the extended key for the child path
-  const childExtendedKey = await getExtendedKey(secureChannel, path);
-  // Create ECPubkey from the pubkey buffer
-  const childKey = new ECPubkey(childExtendedKey.pubkey);
-  const childChaincode = childExtendedKey.chaincode;
-
   // Convert path string to bytes
   const {depth, bytePath} = CardDataParser.bip32path2bytes(path);
 
@@ -179,6 +173,12 @@ export async function cardBip32GetXpub(
     childNumber = bytePath.slice(-4);
   }
 
+  // Get the extended key for the child path
+  const childExtendedKey = await getExtendedKey(secureChannel, path);
+  // Create ECPubkey from the pubkey buffer
+  const childKey = new ECPubkey(childExtendedKey.pubkey);
+  const childChaincode = childExtendedKey.chaincode;
+
   // Select appropriate xpub header
   const xpubHeader = isMainnet
     ? XPUB_HEADERS_MAINNET[xtype]
@@ -204,8 +204,7 @@ export async function cardBip32GetXpub(
 
   // Verify total length is 78 bytes
   if (xpubBytes.length !== 78) {
-
-    //throw new Error(`Invalid xpub length: ${xpubBytes.length}, expected 78`);
+    throw new Error(`Invalid xpub length: ${xpubBytes.length}, expected 78`);
   }
 
   // Encode with Base58Check
