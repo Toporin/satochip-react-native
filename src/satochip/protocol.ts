@@ -48,6 +48,7 @@ export class SatochipCard {
   private status: SatochipStatus | null = null;
   private secureChannel: SecureChannel = new SecureChannel();
   private lastBip32Path = 'm/';
+  private masterXfp: string | null = null;
 
   constructor() {
     this.pinVerified.set(0, false);
@@ -120,6 +121,10 @@ export class SatochipCard {
 
   async selectApplet(): Promise<void> {
 
+    // Clear cached values
+    this.status = null;
+    this.masterXfp = null;
+
     const rapdu = await selectApplet();
     if (rapdu.statusWord === 0x9000){
       console_log('cardManagement selectApplet applet selected!');
@@ -151,6 +156,7 @@ export class SatochipCard {
     await setup(this.secureChannel, pin, max_try);
     // Clear cached status after setup
     this.status = null;
+    this.masterXfp = null;
   }
 
   async getLabel(): Promise<string> {
@@ -277,6 +283,7 @@ export class SatochipCard {
 
     // Clear cached status as seeding state changed
     this.status = null;
+    this.masterXfp = null;
   }
 
   /**
@@ -291,6 +298,7 @@ export class SatochipCard {
     
     // Clear all cached state
     this.status = null;
+    this.masterXfp = null;
   }
 
   /**
@@ -310,7 +318,10 @@ export class SatochipCard {
 
   async getMasterXfp(): Promise<string>  {
     console_log(`In protocol getMasterXfp`);
-    return await cardBip32GetMasterXFP(this.secureChannel);
+    if (this.masterXfp == null) {
+      this.masterXfp = await cardBip32GetMasterXFP(this.secureChannel);
+    }
+    return this.masterXfp;
   }
 
   // ========================================

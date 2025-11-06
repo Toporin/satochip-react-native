@@ -155,7 +155,7 @@ export async function cardBip32GetXpub(
   // Convert path string to bytes
   const {depth, bytePath} = CardDataParser.bip32path2bytes(path);
 
-  // get
+  // get the extended key for the parent path
   let fingerprint: Buffer;
   let childNumber: Buffer;
   if (depth === 0) {
