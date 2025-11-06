@@ -14,7 +14,7 @@
     "satochip",
     "nfc"
   ],
-  "author": "Praneeth G",
+  "author": "Praneeth G & Toporin",
   "license": "MIT",
   "dependencies": {
     "@peculiar/webcrypto": "^1.5.0",
@@ -46,5 +46,17 @@
     "eslint": "^8.21.0",
     "install-peers-cli": "^2.2.0",
     "jest": "^28.1.3"
-  }
+  },
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Toporin/satochip-react-native.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Toporin/satochip-react-native/issues"
+  },
+  "homepage": "https://github.com/Toporin/satochip-react-native#readme"
 }
