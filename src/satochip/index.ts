@@ -15,4 +15,5 @@ export {
   Policy, 
   NFCPolicy 
 } from './types';
-export * as SatochipConstants from './constants';
+import * as SatochipConstants from './constants';
+export { SatochipConstants };
