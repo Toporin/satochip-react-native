@@ -1,5 +1,5 @@
 export { SatochipCard } from './protocol';
-export { SatochipCardError, mapErrorCode, checkResponse } from './errors';
+export { SatochipCardError, SatochipError, mapErrorCode, checkResponse } from './errors';
 export { SecureChannel, UninitializedSecureChannelError } from './SecureChannel';
 export type { 
   APDUCommand, 

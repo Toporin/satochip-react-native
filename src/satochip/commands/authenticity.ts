@@ -8,7 +8,7 @@ import {
 } from '../constants';
 import { APDUCommand } from '../types';
 import { SecureChannel } from '../SecureChannel';
-import { checkResponseApdu } from '../errors';
+import { checkResponseApdu, SatochipError } from '../errors';
 import { CardDataParser } from '../parser';
 import * as crypto from 'crypto';
 import {console_log} from '../utils/logging';
@@ -36,8 +36,8 @@ export async function exportPersoCertificate(
 ): Promise<string> {
   console_log('In cardExportPersoCertificate');
 
-  if (!secureChannel?.isEstablished()) {
-    throw new Error('Secure channel required for PKI operations');
+  if (!secureChannel) {
+    throw new SatochipError('Secure channel required for PKI operations');
   }
 
   // ========================================
@@ -139,8 +139,8 @@ export async function cardChallengeResponsePki(
 ): Promise<ChallengeResponseResult> {
   console_log('In cardChallengeResponsePki');
 
-  if (!secureChannel?.isEstablished()) {
-    throw new Error('Secure channel required for PKI operations');
+  if (!secureChannel) {
+    throw new SatochipError('Secure channel required for PKI operations');
   }
 
   // Generate 32-byte random challenge from host
@@ -178,8 +178,8 @@ export async function cardExportPersoPubkey(
 ): Promise<Buffer> {
   console_log('In cardExportPersoPubkey');
 
-  if (!secureChannel?.isEstablished()) {
-    throw new Error('Secure channel required for PKI operations');
+  if (!secureChannel) {
+    throw new SatochipError('Secure channel required for PKI operations');
   }
 
   const cla = SATOCHIP_CLA;

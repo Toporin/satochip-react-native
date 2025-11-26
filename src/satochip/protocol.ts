@@ -188,7 +188,7 @@ export class SatochipCard {
     oldPin: string,
     newPin: string
   ): Promise<void> {
-    console_log(`In protocol changePIN ${oldPin} to ${newPin}`);
+    console_log(`In protocol changePIN`);
     await changePIN(this.secureChannel, pinNumber, oldPin, newPin);
   }
 

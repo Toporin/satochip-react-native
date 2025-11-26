@@ -33,7 +33,7 @@ export class SatochipError extends Error {
     message: string,
   ) {
     super(message);
-    this.name = 'SatochipErrorNew';
+    this.name = 'SatochipError';
   }
 }
 
@@ -45,7 +45,7 @@ export class SatochipCardError extends Error {
     public remainingAttempts?: number
   ) {
     super(message);
-    this.name = 'SatochipError';
+    this.name = 'SatochipCardError';
   }
 }
 
