@@ -1,6 +1,6 @@
 {
   "name": "satochip-react-native",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Satochip protocol support in javascript",
   "main": "index.ts",
   "type": "module",

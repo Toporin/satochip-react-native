@@ -206,6 +206,11 @@ export class CertificateValidator {
   private async parseCertificate(pemCertificate: string) {
     console_log(`certificateValidator parseCertificate start`);
     try {
+      // check certificate is not empty
+      if (!pemCertificate || !pemCertificate.trim()) {
+        throw new Error('Certificate is empty');
+      }
+
       // Convert PEM to DER
       const derBuffer = this.pemToDer(pemCertificate);
 
