@@ -6,12 +6,15 @@ import {
   INS_BIP32_IMPORT_SEED,
   INS_BIP32_RESET_SEED,
   SATOCHIP_CLA,
-  SUPPORTED_XTYPES, XPUB_HEADERS_MAINNET, XPUB_HEADERS_TESTNET,
+  SUPPORTED_XTYPES,
+  SW_NO_MEMORY_LEFT,
+  XPUB_HEADERS_MAINNET,
+  XPUB_HEADERS_TESTNET,
   XType
 } from '../constants';
-import { APDUCommand, ExtendedKey } from '../types';
+import { APDUCommand, APDUResponse, ExtendedKey } from '../types';
 import { SecureChannel } from '../SecureChannel';
-import { checkResponseApdu } from '../errors';
+import { SatochipCardError } from '../errors';
 import { CardDataParser } from '../parser';
 import { hash160, sha256s } from '../utils/crypto';
 import { ECPubkey } from '../utils/ECKey';
@@ -43,7 +46,6 @@ export async function importSeed(
   };
   
   const rapdu =  await sendSecureAPDU(command, secureChannel);
-  checkResponseApdu(rapdu);
 
   // todo recover authentikey
   // response: [coordx_size(2b) | coordx | sig_size(2b) | sig]
@@ -73,7 +75,6 @@ export async function resetSeed(secureChannel: SecureChannel, pinBytes: Buffer, 
   };
   
   const radpu = await sendSecureAPDU(command, secureChannel);
-  checkResponseApdu(radpu);
 }
 
 /**
@@ -99,14 +100,24 @@ export async function getExtendedKey(
     data: bytePath,
     le: 0x00,
   };
-  
-  let rapdu = await sendSecureAPDU(command, secureChannel);
-  if (rapdu.statusWord == 0x9C01){
-    // legacy card: reset memory
-    command.p2 = command.p2 ^ 0x80;
+
+  let rapdu: APDUResponse;
+  try {
     rapdu = await sendSecureAPDU(command, secureChannel);
+  } catch (error){
+    if (error instanceof SatochipCardError) {
+      if (error.statusWord == SW_NO_MEMORY_LEFT){
+        // legacy card: reset memory
+        console_log(`In bip32 getExtendedKey: reset bip32 cache`);
+        command.p2 = command.p2 ^ 0x80;
+        rapdu = await sendSecureAPDU(command, secureChannel);
+      } else {
+        throw error;
+      }
+    } else {
+      throw error;
+    }
   }
-  checkResponseApdu(rapdu);
 
   // parse response
   const {pubkey,  chaincode, authentikeyCandidates} = CardDataParser.parseBip32GetExtendedkey(rapdu.data);
