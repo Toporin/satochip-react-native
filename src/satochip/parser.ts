@@ -398,7 +398,7 @@ export class CardDataParser {
         // console_log(`In parser static getPubkeyFromSignature recoveredPubkey(DER sig & hash):`);
         // console_log(JSON.stringify(recoveredPubkey, null, 2));
 
-        const recoveredCoordx = recoveredPubkey.getX().toBuffer();
+        const recoveredCoordx = recoveredPubkey.getX().toBuffer('be', 32);
         // console_log(`In parser static getPubkeyFromSignature recoveredCoordx: ${recoveredCoordx.toString('hex')}`);
 
         if (coordx.equals(recoveredCoordx)) {
