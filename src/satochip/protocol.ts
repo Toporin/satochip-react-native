@@ -13,7 +13,7 @@ import { SecureChannel } from './SecureChannel';
 import {
   selectApplet,
   getStatus,
-  setup, getAuthentikey, cardGetLabel, cardSetLabel
+  setup, getAuthentikey, cardGetLabel, cardSetLabel, resetToFactory, FactoryResetResult
 } from './commands/cardManagement';
 import { 
   verifyPIN, 
@@ -28,6 +28,8 @@ import {
 } from './commands/bip32';
 import {
   signTransactionHash,
+  signSchnorrHash,
+  taprootTweakPrivkey,
 } from './commands/signature'
 import {
   getPubkeyFromKeyslot,
@@ -161,6 +163,21 @@ export class SatochipCard {
     // Clear cached status after setup
     this.status = null;
     this.masterXfp = null;
+  }
+
+  /**
+   * Advance the five-presentation factory-reset sequence.
+   * No other command may be sent to the card between presentations.
+   */
+  async factoryReset(): Promise<FactoryResetResult> {
+    const result = await resetToFactory();
+    this.status = null;
+    this.masterXfp = null;
+    this.pinVerified.clear();
+    this.pinVerified.set(0, false);
+    this.pinVerified.set(1, false);
+    this.secureChannel.reset();
+    return result;
   }
 
   async getLabel(): Promise<string> {
@@ -367,6 +384,14 @@ export class SatochipCard {
   async signTransactionHash(keynumber: number, txHash: Buffer, hmac: Buffer = Buffer.alloc(0)): Promise<Buffer> {
     console_log(`In protocol signTransactionHash keynumber: ${keynumber} - txHash: ${txHash.toString('hex')}`);
     return await signTransactionHash(this.secureChannel, keynumber, txHash, hmac);
+  }
+
+  async prepareSchnorrKey(keynumber: number, bypassTweak = true): Promise<Buffer> {
+    return await taprootTweakPrivkey(this.secureChannel, keynumber, bypassTweak);
+  }
+
+  async signSchnorrHash(keynumber: number, hash: Buffer, hmac: Buffer = Buffer.alloc(0)): Promise<Buffer> {
+    return await signSchnorrHash(this.secureChannel, keynumber, hash, hmac);
   }
 
   // ========================================

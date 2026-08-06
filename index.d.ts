@@ -32,6 +32,11 @@ export interface CardInfo {
   pinStates: { pin0Tries: number; pin1Tries: number };
 }
 
+export interface FactoryResetResult {
+  complete: boolean;
+  remaining: number;
+}
+
 export class SatochipCard {
   startNfcSession(): Promise<void>;
   endNfcSession(): Promise<void>;
@@ -50,11 +55,14 @@ export class SatochipCard {
   isPINVerified(pinNumber: number): boolean;
   importSeed(seed: Buffer, options?: number): Promise<void>;
   resetSeed(pin: string): Promise<void>;
+  factoryReset(): Promise<FactoryResetResult>;
   getExtendedKey(path: string): Promise<ExtendedKey>;
   getXpub(path: string, xtype?: string, isMainnet?: boolean): Promise<string>;
   getMasterXfp(): Promise<string>;
   signMessage(keyNumber: number, hash: Buffer, hmac?: Buffer): Promise<Buffer>;
   signTransactionHash(keyNumber: number, hash: Buffer, hmac?: Buffer): Promise<Buffer>;
+  prepareSchnorrKey(keyNumber: number, bypassTweak?: boolean): Promise<Buffer>;
+  signSchnorrHash(keyNumber: number, hash: Buffer, hmac?: Buffer): Promise<Buffer>;
   exportPersoCertificate(): Promise<string>;
   isSeeded(): Promise<boolean>;
 }

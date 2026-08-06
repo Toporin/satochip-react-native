@@ -33,6 +33,8 @@ export const INS_EXPORT_AUTHENTIKEY = 0xAD;
 // Signing commands
 export const INS_SIGN_MESSAGE = 0x6E;
 export const INS_SIGN_TRANSACTION_HASH = 0x7A;
+export const INS_SIGN_SCHNORR_HASH = 0x7B;
+export const INS_TAPROOT_TWEAK_PRIVKEY = 0x7C;
 export const INS_PARSE_TRANSACTION = 0x71;
 export const INS_SIGN_TRANSACTION = 0x6F;
 
@@ -130,4 +132,3 @@ export const XPUB_HEADERS_TESTNET: Record<XType, string> = {
   'p2wsh-p2sh': '024289ef',    // Upub
   'p2wsh': '02575483',         // Vpub
 };
-
