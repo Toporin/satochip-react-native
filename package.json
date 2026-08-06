@@ -3,6 +3,7 @@
   "version": "0.1.4",
   "description": "Satochip protocol support in javascript",
   "main": "index.ts",
+  "types": "index.d.ts",
   "type": "module",
   "scripts": {
     "prepare": "echo skip",
@@ -25,7 +26,6 @@
     "buffer-xor": "2.0.2",
     "elliptic": "^6.6.1",
     "js-sha256": "0.9.0",
-    "ripemd160": "2.0.2",
     "secp256k1": "4.0.3",
     "typescript": "4.7.4"
   },

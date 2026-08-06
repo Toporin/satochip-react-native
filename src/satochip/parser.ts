@@ -1,4 +1,4 @@
-import * as crypto from 'crypto';
+import crypto from 'crypto';
 import { ec as EC } from 'elliptic';
 import { SecureChannelInitResponse } from './types';
 import { ECPubkey, InvalidECPointException } from './utils/ECKey';

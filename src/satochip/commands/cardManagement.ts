@@ -1,4 +1,4 @@
-import * as crypto from 'crypto';
+import crypto from 'crypto';
 
 //import { sendAPDU } from '../apdu';
 import { sendAPDU, sendSecureAPDU } from '../apduSecure';
@@ -256,4 +256,3 @@ export async function cardSetLabel(secureChannel: SecureChannel, label: string):
 
   const response = await sendSecureAPDU(command, secureChannel);
 }
-

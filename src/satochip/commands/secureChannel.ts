@@ -1,4 +1,4 @@
-import { sendAPDU } from '../apduSecure';
+import { sendAPDU } from '../apdu';
 import { INS_INIT_SECURE_CHANNEL, INS_PROCESS_SECURE_CHANNEL, SATOCHIP_CLA } from '../constants';
 import { APDUCommand, APDUResponse, SecureChannelData, SecureChannelInitResponse } from '../types';
 import { CardDataParser } from '../parser';

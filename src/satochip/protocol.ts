@@ -102,6 +102,10 @@ export class SatochipCard {
           return result;
         } catch (error) {
           this.handleError(error);
+        } finally {
+          // iOS presents a blocking system NFC sheet. Always invalidate the
+          // session after success or failure so the sheet can dismiss.
+          await closeConnection().catch(() => undefined);
         }
       },
     })();
