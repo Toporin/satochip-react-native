@@ -1,4 +1,4 @@
-import * as crypto from 'crypto';
+import crypto from 'crypto';
 
 //import { sendAPDU } from '../apdu';
 import { sendAPDU, sendSecureAPDU } from '../apduSecure';
@@ -11,6 +11,7 @@ import {
   SATOCHIP_AID,
   SATOCHIP_CLA,
   INS_CARD_LABEL,
+  INS_RESET_TO_FACTORY,
 } from '../constants';
 import { APDUCommand, APDUResponse, SatochipStatus } from '../types';
 import { SecureChannel } from '../SecureChannel';
@@ -29,6 +30,44 @@ export async function selectApplet(): Promise<APDUResponse> {
   };
 
   return await sendAPDU(command);
+}
+
+export type FactoryResetResult = {
+  complete: boolean;
+  remaining: number;
+};
+
+/**
+ * Advance the applet's factory-reset sequence by one card presentation.
+ * The applet requires five separate presentations and returns 0xFF00 when
+ * complete or 0xFF01 through 0xFF04 with the number remaining.
+ */
+export async function resetToFactory(): Promise<FactoryResetResult> {
+  const response = await sendAPDU(
+    {
+      cla: SATOCHIP_CLA,
+      ins: INS_RESET_TO_FACTORY,
+      p1: 0x00,
+      p2: 0x00,
+    },
+    false,
+  );
+
+  if (response.sw1 !== 0xFF || response.sw2 > 0x04) {
+    if (response.statusWord === 0xFFFF) {
+      throw new Error('Factory reset was interrupted. Start the five-scan sequence again.');
+    }
+    throw new SatochipCardError(
+      response.statusWord,
+      'SW_RESET_TO_FACTORY',
+      `Unexpected factory reset status: 0x${response.statusWord.toString(16).toUpperCase()}`,
+    );
+  }
+
+  return {
+    complete: response.sw2 === 0,
+    remaining: response.sw2,
+  };
 }
 
 /**
@@ -256,4 +295,3 @@ export async function cardSetLabel(secureChannel: SecureChannel, label: string):
 
   const response = await sendSecureAPDU(command, secureChannel);
 }
-

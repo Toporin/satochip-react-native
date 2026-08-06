@@ -10,7 +10,7 @@ import { APDUCommand } from '../types';
 import { SecureChannel } from '../SecureChannel';
 import { checkResponseApdu, SatochipError } from '../errors';
 import { CardDataParser } from '../parser';
-import * as crypto from 'crypto';
+import crypto from 'crypto';
 import {console_log} from '../utils/logging';
 
 /**

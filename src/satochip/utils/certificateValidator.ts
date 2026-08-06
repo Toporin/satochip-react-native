@@ -19,7 +19,7 @@ import { console_log } from './logging';
 // Basic certificate check
 import { fromBER, Integer, Sequence, BitString } from 'asn1js';
 import * as elliptic from 'elliptic';
-import * as crypto from 'crypto';
+import crypto from 'crypto';
 
 export type DeviceType = 'SeedKeeper' | 'Satochip' | 'Satodime';
 

@@ -1,5 +1,8 @@
 import NfcManager from 'react-native-nfc-manager';
 import { NfcTech } from 'react-native-nfc-manager';
+import { Platform } from 'react-native';
+
+const SATOCHIP_TRANSCEIVE_TIMEOUT_MS = 30_000;
 
 /**
  * Check if device supports NFC feature
@@ -12,6 +15,9 @@ const isNfcSupported = async () => NfcManager.isSupported();
 const startConnection = async () => {
   await NfcManager.start();
   await NfcManager.requestTechnology([NfcTech.IsoDep]);
+  if (Platform.OS === 'android') {
+    await NfcManager.setTimeout(SATOCHIP_TRANSCEIVE_TIMEOUT_MS);
+  }
 };
 
 /**

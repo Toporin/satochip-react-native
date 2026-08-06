@@ -1,4 +1,4 @@
-import { sendAPDU } from '../apduSecure';
+import { sendAPDU } from '../apdu';
 import { INS_INIT_SECURE_CHANNEL, INS_PROCESS_SECURE_CHANNEL, SATOCHIP_CLA } from '../constants';
 import { APDUCommand, APDUResponse, SecureChannelData, SecureChannelInitResponse } from '../types';
 import { CardDataParser } from '../parser';
@@ -79,6 +79,8 @@ export function requiresSecureChannel(ins: number): boolean {
     // Signing commands that need encryption
     0x6E, // INS_SIGN_MESSAGE
     0x7A, // INS_SIGN_TRANSACTION_HASH
+    0x7B, // INS_SIGN_SCHNORR_HASH
+    0x7C, // INS_TAPROOT_TWEAK_PRIVKEY
     0x71, // INS_PARSE_TRANSACTION
     0x6F, // INS_SIGN_TRANSACTION
     

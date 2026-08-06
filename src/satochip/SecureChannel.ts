@@ -1,5 +1,5 @@
 import { ec as EC } from 'elliptic';
-import * as crypto from 'crypto';
+import crypto from 'crypto';
 import { initSecureChannel } from './commands/secureChannel';
 import { SatochipCardError } from './errors';
 

@@ -123,5 +123,15 @@ package-lock.json
 .vscode
 .vs
 
+# Local AI agent configuration
+/.agents/
+/skills-lock.json
+**/.claude/
+**/AGENTS.md
+**/CLAUDE.md
+
+# Keep the Expo example installation reproducible
+!examples/satochip-expo/package-lock.json
+
 # Android memory profiler files
 *.hprof
