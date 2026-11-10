@@ -1,12 +1,12 @@
 {
   "name": "satochip-react-native",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Satochip protocol support in javascript",
   "main": "index.ts",
   "type": "module",
   "scripts": {
     "prepare": "echo skip",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test": "jest",
     "prettier": "npx prettier --write .",
     "lint": "npx eslint '**/*.ts' --ignore-pattern node_modules/"
   },

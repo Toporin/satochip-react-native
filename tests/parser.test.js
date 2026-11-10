@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import { ec as EC } from 'elliptic';
 import { CardDataParser } from '../src/satochip/parser';
+import { SecureChannel } from '../src/satochip/SecureChannel';
 
 const ec = new EC('secp256k1');
 
@@ -47,6 +48,32 @@ describe('CardDataParser.parseInitiateSecureChannel', () => {
       const response = buildInitResponse(ephemeralKey, authentiKey, false);
       const res = CardDataParser.parseInitiateSecureChannel(response);
       expect(res.cardPublicKey.getPublicKeyBytes(true)).toEqual(compressed(ephemeralKey));
+      // without the coordx, the authentikey is ambiguous: the candidates must include it
+      expect(res.authentikeyCandidates.length).toBeGreaterThanOrEqual(1);
+      expect(res.authentikeyCandidates.length).toBeLessThanOrEqual(2);
+      const candidates = res.authentikeyCandidates.map((k) => k.getPublicKeyBytes(true).toString('hex'));
+      expect(candidates).toContain(compressed(authentiKey).toString('hex'));
     });
   }
+});
+
+describe('SecureChannel.checkAuthentikeyCandidates', () => {
+  test('legacy card: candidates from two signatures narrow down to the authentikey', () => {
+    const authentiKey = ec.genKeyPair();
+    // two independent responses signed by the same authentikey, as when the secure channel is
+    // initiated and then an extended key is fetched (each signature yields its own candidates)
+    const first = CardDataParser.parseInitiateSecureChannel(
+      buildInitResponse(ec.genKeyPair(), authentiKey, false));
+    const second = CardDataParser.parseInitiateSecureChannel(
+      buildInitResponse(ec.genKeyPair(), authentiKey, false));
+
+    const sc = new SecureChannel();
+    sc.checkAuthentikeyCandidates(first.authentikeyCandidates);
+    expect(() => sc.checkAuthentikeyCandidates(second.authentikeyCandidates)).not.toThrow();
+    // a response signed by another card must be rejected
+    const other = CardDataParser.parseInitiateSecureChannel(
+      buildInitResponse(ec.genKeyPair(), ec.genKeyPair(), false));
+    expect(() => sc.checkAuthentikeyCandidates(other.authentikeyCandidates)).toThrow(
+      'No matching authentikey found in candidates.');
+  });
 });

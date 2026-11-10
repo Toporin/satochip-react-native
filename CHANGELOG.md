@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7]: 
+
+fix: keep the authentikey candidates recovered from InitiateSecureChannel on legacy applets
+
+For applets older than v0.16 (no authentikey coordx in the response), the
+candidates recovered from the authentikey signature were discarded:
+Array.concat() returns a new array, and its result was ignored. The list was
+always empty, so the first later check (getExtendedKey, getAuthentikey)
+accepted any key. The candidates are now kept, and later responses must be
+signed by the same authentikey.
+
+test: make `yarn test` work again
+- remove babel.config.js: it is CommonJS in a "type": "module" package and
+  uses a preset that is not installed; babel.config.json is used instead
+  (apps compile the library with their own Metro babel config)
+- run jest without --experimental-vm-modules, so babel-jest compiles the
+  tests and sources to CommonJS
+- stub the react-native and react-native-nfc-manager peer dependencies
+- fix the stale crypto import in tests/lib.test.js
+- add tests for the legacy authentikey candidates
+
 ## [0.1.6]: 
 
 fix: parse the authentikey coordx returned by InitiateSecureChannel on applet v0.16+

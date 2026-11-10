@@ -275,7 +275,7 @@ export class CardDataParser {
       authentikeyCandidates.push(this.getPubkeyFromSignature(coordx2, data2, sig2));
     } else {
       // recover list of authentikey candidates
-      authentikeyCandidates.concat(this.getPubkeyCandidatesFromSignature(data2, sig2));
+      authentikeyCandidates.push(...this.getPubkeyCandidatesFromSignature(data2, sig2));
     }
 
     return {cardPublicKey: pubkey, authentikeyCandidates};

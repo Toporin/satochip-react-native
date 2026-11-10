@@ -1,4 +1,4 @@
-import * as primitives from '../src/satochip/utils/crypto.js';
+import * as primitives from '../src/satochip/utils/crypto';
 
 test('sha256s', () => {
   expect(Buffer.from(primitives.sha256s('abc')).toString('hex')).toBe(

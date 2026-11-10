@@ -1,6 +1,11 @@
 {
   "clearMocks": true,
   "testEnvironment": "jest-environment-node",
+  "testPathIgnorePatterns": ["/node_modules/", "/tests/mocks/"],
+  "moduleNameMapper": {
+    "^react-native$": "<rootDir>/tests/mocks/react-native.js",
+    "^react-native-nfc-manager$": "<rootDir>/tests/mocks/react-native-nfc-manager.js"
+  },
   "transformIgnorePatterns": [
     "node_modules/(?!(react-native|react-native-nfc-manager)/)"
   ]
