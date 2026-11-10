@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5]: 
+
+fix: raise the Android NFC (IsoDep) transceive timeout to 5 s
+
+Android's default IsoDep timeout (~618 ms) is shorter than the time Satochip
+applet v0.16 needs to answer InitiateSecureChannel over NFC, so the command
+failed with "transceive fail" ("Failed to establish secure channel").
+startConnection() now calls NfcManager.setTimeout(5000) right after
+requestTechnology() on Android. iOS is unaffected.
+
 ## [0.1.4]: 
 
 fix: pad recovered x-coordinate to 32 bytes in getPubkeyFromSignature()

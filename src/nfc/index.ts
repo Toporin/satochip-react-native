@@ -1,5 +1,8 @@
 import NfcManager from 'react-native-nfc-manager';
 import { NfcTech } from 'react-native-nfc-manager';
+import { Platform } from 'react-native';
+
+const NFC_TRANSCEIVE_TIMEOUT_MS = 5000;
 
 /**
  * Check if device supports NFC feature
@@ -12,6 +15,15 @@ const isNfcSupported = async () => NfcManager.isSupported();
 const startConnection = async () => {
   await NfcManager.start();
   await NfcManager.requestTechnology([NfcTech.IsoDep]);
+  // Android's default IsoDep transceive timeout (~618 ms) is too short for some
+  // card operations (e.g. InitiateSecureChannel on applet v0.16+), so raise it.
+  if (Platform.OS === 'android') {
+    try {
+      await NfcManager.setTimeout(NFC_TRANSCEIVE_TIMEOUT_MS);
+    } catch (e) {
+      console.warn('[Satochip] failed to set NFC transceive timeout:', e);
+    }
+  }
 };
 
 /**
