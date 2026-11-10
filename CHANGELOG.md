@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6]: 
+
+fix: parse the authentikey coordx returned by InitiateSecureChannel on applet v0.16+
+
+Since applet v0.16, the InitiateSecureChannel response ends with
+[coordx_size(2b) | authentikey_coordx]. The parser read the coordx without
+skipping its 2-byte size, so authentikey recovery failed with "Unable to
+recover public key from signature" ("Failed to establish secure channel").
+The size is now read and checked (32 bytes). Responses from older applets,
+which do not contain the field, are parsed as before.
+Add tests/parser.test.js covering both response formats.
+
 ## [0.1.5]: 
 
 fix: raise the Android NFC (IsoDep) transceive timeout to 5 s

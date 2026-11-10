@@ -263,12 +263,15 @@ export class CardDataParser {
     const sig2Size = (response[data2Size] << 8) + response[data2Size + 1];
     const sig2 = response.slice(data2Size + 2, data2Size + 2 + sig2Size);
 
-    // TODO recover authentikey coordx if available
+    // Applet v0.16+ appends the authentikey coordx: [coordx2_size(2b) | authentikey_coordx]
     const authentikeyCandidates: ECPubkey[] = [];
-    const coordx2Offset = data2Size + 2 + sig2Size
-    if (response.length >= coordx2Offset + 32){
+    const coordx2SizeOffset = data2Size + 2 + sig2Size;
+    const coordx2Size = response.length >= coordx2SizeOffset + 2
+      ? (response[coordx2SizeOffset] << 8) + response[coordx2SizeOffset + 1]
+      : 0;
+    if (coordx2Size === 32 && response.length >= coordx2SizeOffset + 2 + coordx2Size){
       // recover unique authentikey from coordx, data & sig
-      const coordx2 = response.slice(coordx2Offset, coordx2Offset + 32);
+      const coordx2 = response.slice(coordx2SizeOffset + 2, coordx2SizeOffset + 2 + coordx2Size);
       authentikeyCandidates.push(this.getPubkeyFromSignature(coordx2, data2, sig2));
     } else {
       // recover list of authentikey candidates
