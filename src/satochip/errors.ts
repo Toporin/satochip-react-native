@@ -27,6 +27,7 @@ import {
   SW_PIN_FAILED_BASE,
 } from './constants';
 import { APDUResponse } from './types';
+import { CardError } from '../core/errors';
 
 export class SatochipError extends Error {
   constructor(
@@ -37,14 +38,14 @@ export class SatochipError extends Error {
   }
 }
 
-export class SatochipCardError extends Error {
+export class SatochipCardError extends CardError {
   constructor(
-    public statusWord: number,
-    public code: string,
+    statusWord: number,
+    code: string,
     message: string,
-    public remainingAttempts?: number
+    remainingAttempts?: number
   ) {
-    super(message);
+    super(statusWord, code, message, remainingAttempts);
     this.name = 'SatochipCardError';
   }
 }

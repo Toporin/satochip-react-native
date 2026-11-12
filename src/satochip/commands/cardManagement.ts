@@ -4,20 +4,21 @@ import * as crypto from 'crypto';
 import { sendAPDU, sendSecureAPDU } from '../apduSecure';
 import {
   DEFAULT_PIN_BYTES,
-  INS_EXPORT_AUTHENTIKEY,
   INS_GET_STATUS,
   INS_SELECT,
   INS_SETUP,
   SATOCHIP_AID,
   SATOCHIP_CLA,
-  INS_CARD_LABEL,
 } from '../constants';
 import { APDUCommand, APDUResponse, SatochipStatus } from '../types';
 import { SecureChannel } from '../SecureChannel';
 import { ECPubkey } from '../utils/ECKey';
-import { CardDataParser } from '../parser';
-import { SatochipCardError } from '../errors';
 import { console_log } from '../utils/logging';
+import {
+  getAuthentikey as coreGetAuthentikey,
+  getLabel as coreGetLabel,
+  setLabel as coreSetLabel,
+} from '../../core/commands/common';
 
 export async function selectApplet(): Promise<APDUResponse> {
   const command: APDUCommand = {
@@ -38,22 +39,7 @@ export async function getAuthentikey(secureChannel: SecureChannel): Promise<ECPu
   if (!secureChannel) {
     throw new Error('Secure channel required for authentikey');
   }
-
-  const command: APDUCommand = {
-    cla: SATOCHIP_CLA,
-    ins: INS_EXPORT_AUTHENTIKEY, //INS_BIP32_GET_AUTHENTIKEY,
-    p1: 0x00,
-    p2: 0x00,
-    le: 0x00
-  };
-
-  const response = await sendSecureAPDU(command, secureChannel);
-  const recoveredAuthentikey = CardDataParser.parseGetAuthentikey(response.data);
-
-  // check that recovered authentikey matches cached value
-  secureChannel.checkAuthentikeyCandidates([recoveredAuthentikey]);
-
-  return recoveredAuthentikey;
+  return coreGetAuthentikey((command) => sendSecureAPDU(command, secureChannel), secureChannel);
 }
 
 export async function getStatus(): Promise<SatochipStatus> {
@@ -175,85 +161,15 @@ export async function setup(secureChannel: SecureChannel, pin: string, max_try= 
 }
 
 /**
- * Get the card label from the Satochip
- *
- * @param secureChannel
- * @returns Promise containing the label string
- * @throws Error if there's an unexpected error during transmission
+ * Get the card label ('(none)' if the card does not support labels).
  */
 export async function cardGetLabel(secureChannel: SecureChannel): Promise<string> {
-  console_log('In cardGetLabel');
-
-  const command: APDUCommand = {
-    cla: SATOCHIP_CLA,
-    ins: INS_CARD_LABEL,
-    p1: 0x00,
-    p2: 0x01, // Get operation
-  };
-
-  let label: string;
-
-  try {
-    const response = await sendSecureAPDU(command, secureChannel);
-
-    // Success - decode the label
-    const labelSize = response.data.readUInt8(0);
-    try {
-      // Extract label bytes (skip the first byte which is the size)
-      const labelBytes = response.data.slice(1, 1 + labelSize);
-      label = labelBytes.toString('utf8');
-    } catch (error) {
-      console.warn('Error decoding card label:', error);
-      // Fallback to hex representation if UTF-8 decode fails
-      label = response.data.slice(1).toString('hex');
-    }
-
-  } catch (error) {
-    console.warn('Error getting card label:', error);
-    //label = error.message;
-    if (error instanceof SatochipCardError) {
-      if (error.statusWord == 0x6D00){
-        // INS_NOT_SUPPORTED - card doesn't support labels
-        label = '(none)';
-      } else {
-        throw error;
-      }
-    } else {
-      throw error;
-    }
-  }
-
-  return label;
+  return coreGetLabel((command) => sendSecureAPDU(command, secureChannel));
 }
 
 /**
- * Set the card label on the Satochip
- *
- * @param secureChannel
- * @param label - The label string to set on the card (will be UTF-8 encoded)
- * @returns void
- * @throws Error if there's an unexpected error during transmission
+ * Set the card label on the Satochip (UTF-8 encoded).
  */
 export async function cardSetLabel(secureChannel: SecureChannel, label: string): Promise<void> {
-  console_log('In cardSetLabel');
-
-  // Encode label to UTF-8 bytes
-  const labelBytes = Buffer.from(label, 'utf8');
-
-  // Build data: [length, ...label_bytes]
-  const data = Buffer.concat([
-    Buffer.from([labelBytes.length]),
-    labelBytes,
-  ]);
-
-  const command: APDUCommand = {
-    cla: SATOCHIP_CLA,
-    ins: INS_CARD_LABEL,
-    p1: 0x00,
-    p2: 0x00, // Set operation
-    data,
-  };
-
-  const response = await sendSecureAPDU(command, secureChannel);
+  await coreSetLabel((command) => sendSecureAPDU(command, secureChannel), label);
 }
-

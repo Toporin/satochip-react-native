@@ -1,19 +1,12 @@
-import { Platform } from 'react-native';
-import { 
-  startConnection, 
-  closeConnection, 
-  isNfcSupported 
-} from '../nfc';
-
+import { BaseCard } from '../core/BaseCard';
 import { SatochipStatus, ExtendedKey } from './types';
-import { SatochipCardError, SatochipError } from './errors';
+import { SatochipCardError, SatochipError, checkResponse } from './errors';
 import { SecureChannel } from './SecureChannel';
 
 // Import command functions
 import {
-  selectApplet,
   getStatus,
-  setup, getAuthentikey, cardGetLabel, cardSetLabel
+  setup,
 } from './commands/cardManagement';
 import { 
   verifyPIN, 
@@ -32,117 +25,36 @@ import {
 import {
   getPubkeyFromKeyslot,
 } from './commands/keyslot'
-import {
-  ChallengeResponseResult, exportPersoCertificate, cardChallengeResponsePki,
-} from './commands/authenticity';
-
-import { MAX_NUM_KEYS, XType } from './constants';
+import { MAX_NUM_KEYS, SATOCHIP_AID, XType } from './constants';
 
 import { ECPubkey } from './utils/ECKey';
 import { CardDataParser } from './parser';
-import { CertificateValidationResult, CertificateValidator } from './utils/certificateValidator';
 import { console_log } from './utils/logging';
 
-export class SatochipCard {
+export class SatochipCard extends BaseCard {
+  protected readonly aid = SATOCHIP_AID;
+  readonly deviceType = 'Satochip' as const;
+
   private pinVerified: Map<number, boolean> = new Map();
   private status: SatochipStatus | null = null;
-  private secureChannel: SecureChannel = new SecureChannel();
   private lastBip32Path = 'm/';
   private masterXfp: string | null = null;
 
   constructor() {
+    super(new SecureChannel(), checkResponse);
     this.pinVerified.set(0, false);
     this.pinVerified.set(1, false);
   }
 
-  // NFC session management
-  async startNfcSession(): Promise<void> {
-    try {
-      await startConnection();
-      await this.selectApplet();
-    } catch (error) {
-      // Handle Android-specific error for already active session
-      if (
-        error.toString() === 'Error: You can only issue one request at a time'
-      ) {
-        return;
-      } else {
-        throw error;
-      }
-    }
-  }
-
-  async endNfcSession(): Promise<void> {
-    await closeConnection();
-  }
-
-  // NFC wrapper for operations
-  async nfcWrapper<T>(callback: () => Promise<T>): Promise<T> {
-    const supported = await isNfcSupported();
-
-    if (!supported) {
-      throw new Error("Sorry, this device doesn't support NFC");
-    }
-
-    return Platform.select({
-      android: async () => {
-        try {
-          await this.startNfcSession();
-          const result = await callback();
-          return result;
-        } catch (error) {
-          this.handleError(error);
-        }
-      },
-      ios: async () => {
-        try {
-          await startConnection();
-          await this.selectApplet();
-          const result = await callback();
-          return result;
-        } catch (error) {
-          this.handleError(error);
-        }
-      },
-    })();
-  }
-
-  private handleError(error: any): never {
-    if (error.toString() === 'Error: Initialisation failed') {
-      throw new Error('Please hold the card more stably or longer');
-    }
-    throw error;
-  }
-
-  // ========================================
-  // Core card management operations
-  // ========================================
-
-
-  async selectApplet(): Promise<void> {
-
-    // Clear cached values
+  /** Cached values are cleared on every applet SELECT. */
+  protected clearCache(): void {
     this.status = null;
     this.masterXfp = null;
-
-    const rapdu = await selectApplet();
-    if (rapdu.statusWord === 0x9000){
-      console_log('cardManagement selectApplet applet selected!');
-      this.secureChannel.reset()
-    }
   }
 
   async getStatus(): Promise<SatochipStatus> {
     this.status = await getStatus();
     return this.status;
-  }
-
-  /**
-   * Get the card master public key (authentikey)
-   */
-  async getAuthentikey(): Promise<ECPubkey> {
-    console_log(`In protocol getAuthentikey`);
-    return await getAuthentikey(this.secureChannel); // todo: return buffer instead of ECPubkey?
   }
 
   async getCachedStatus(): Promise<SatochipStatus> {
@@ -158,16 +70,6 @@ export class SatochipCard {
     this.status = null;
     this.masterXfp = null;
   }
-
-  async getLabel(): Promise<string> {
-    const label = await cardGetLabel(this.secureChannel);
-    return label;
-  }
-
-  async setLabel(label: string): Promise<void> {
-    await cardSetLabel(this.secureChannel, label);
-  }
-
 
   // ========================================
   // PIN management operations
@@ -364,41 +266,6 @@ export class SatochipCard {
     console_log(`In protocol signTransactionHash keynumber: ${keynumber} - txHash: ${txHash.toString('hex')}`);
     return await signTransactionHash(this.secureChannel, keynumber, txHash, hmac);
   }
-
-  // ========================================
-  // PKI Methods
-  // ========================================
-
-  async exportPersoCertificate(): Promise<string> {
-    console_log(`In protocol ExportPersoCertificate`);
-    return await exportPersoCertificate(this.secureChannel);
-  }
-
-  async cardChallengeResponsePki(): Promise<ChallengeResponseResult> {
-    console_log(`In protocol cardChallengeResponsePki`);
-    const authentikey = await this.getAuthentikey();
-    const res = await cardChallengeResponsePki(this.secureChannel, authentikey.getPublicKeyBytes(false));
-    console_log(`In protocol cardChallengeResponsePki res: ${res}`);
-    console_log(JSON.stringify(res, null, 2));
-
-    return res;
-  }
-
-  async verifyCertificateChain(): Promise<CertificateValidationResult> {
-    console_log(`In protocol verifyCertificateChain`);
-
-    const devicePem = await this.exportPersoCertificate();
-    console_log(`In protocol verifyCertificateChain devicePem: ${devicePem}`);
-
-    const validator = new CertificateValidator();
-    const res = await validator.validateCertificateChain(devicePem, 'Satochip')
-
-    console_log(`In protocol verifyCertificateChain res: ${res}`);
-    console_log(JSON.stringify(res, null, 2));
-
-    return res;
-  }
-
 
   // ========================================
   // Utility Methods
