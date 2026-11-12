@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+feat: Satodime support and shared card core
+
+- New `src/core/`: card-agnostic APDU transport, secure channel, error base
+  class (`CardError`), commands shared by every applet (authentikey, label,
+  PKI) and an abstract `BaseCard` (NFC session, SELECT, secure channel).
+  `detectCardType()` selects each known applet AID.
+- `SatochipCard` now extends `BaseCard`. Its public API is unchanged, and
+  `SatochipCardError` now extends `CardError`. Old import paths
+  (`src/satochip/apduSecure`, `src/satochip/SecureChannel`) re-export the core code.
+- New `SatodimeCard` (`src/satodime/`): card and Satodime status, key slot
+  status, vault public keys (checked against the authentikey), ownership
+  (claim with SETUP, CVC secret, unlock-code check 0x54, transfer), on-card
+  hash signing (0x5B, protocol >= 0.2), seal/unseal/reset/privkey/metadata.
+  Unlock codes are HMAC-SHA1(unlock_secret, inner APDU up to the counter), as
+  in pysatochip. Satodime status words 0x9C50-0x9C54 map to `SatodimeCardError`.
+
 ## [0.1.7]: 
 
 fix: keep the authentikey candidates recovered from InitiateSecureChannel on legacy applets
