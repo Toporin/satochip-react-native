@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.8]: 
 
 feat: Satodime support and shared card core
 
@@ -22,6 +22,9 @@ feat: Satodime support and shared card core
   hash signing (0x5B, protocol >= 0.2), seal/unseal/reset/privkey/metadata.
   Unlock codes are HMAC-SHA1(unlock_secret, inner APDU up to the counter), as
   in pysatochip. Satodime status words 0x9C50-0x9C54 map to `SatodimeCardError`.
+
+chore: move `typescript` from dependencies to devDependencies (it conflicted
+with the consumer's TypeScript when the package is linked locally).
 
 ## [0.1.7]: 
 
