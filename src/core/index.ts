@@ -1,0 +1,10 @@
+export { BaseCard } from './BaseCard';
+export { CardError } from './errors';
+export type { ResponseChecker } from './errors';
+export { SecureChannel, UninitializedSecureChannelError } from './SecureChannel';
+export type { SecureChannelOptions } from './SecureChannel';
+export { detectCardType, CARD_AIDS } from './detect';
+export type { CardType } from './detect';
+export { parseCardVersion, formatCardVersion } from './status';
+export type { CardVersion } from './status';
+export type { ChallengeResponseResult, SecureSender } from './commands/common';
