@@ -21,18 +21,21 @@ import {
 } from './commands/bip32';
 import {
   signTransactionHash,
+  signSchnorrHash,
+  taprootTweakPrivkey,
 } from './commands/signature'
 import {
   getPubkeyFromKeyslot,
 } from './commands/keyslot'
 import { MAX_NUM_KEYS, SATOCHIP_AID, XType } from './constants';
 
+import { FactoryResetResult, resetToFactory } from '../core/commands/common';
 import { ECPubkey } from './utils/ECKey';
 import { CardDataParser } from './parser';
 import { console_log } from './utils/logging';
 
 export class SatochipCard extends BaseCard {
-  protected readonly aid = SATOCHIP_AID;
+  protected readonly aid: Buffer = SATOCHIP_AID;
   readonly deviceType = 'Satochip' as const;
 
   private pinVerified: Map<number, boolean> = new Map();
@@ -42,6 +45,11 @@ export class SatochipCard extends BaseCard {
 
   constructor() {
     super(new SecureChannel(), checkResponse);
+    this.resetPinState();
+  }
+
+  private resetPinState(): void {
+    this.pinVerified.clear();
     this.pinVerified.set(0, false);
     this.pinVerified.set(1, false);
   }
@@ -69,6 +77,20 @@ export class SatochipCard extends BaseCard {
     // Clear cached status after setup
     this.status = null;
     this.masterXfp = null;
+  }
+
+  /**
+   * Advance the factory-reset sequence by one card presentation.
+   * The applet requires several separate presentations (remove the card in
+   * between) and no other command may be sent to the card meanwhile.
+   * WARNING: once complete, all keys and settings are permanently erased.
+   */
+  async factoryReset(): Promise<FactoryResetResult> {
+    const result = await resetToFactory(this.check);
+    this.clearCache();
+    this.resetPinState();
+    this.secureChannel.reset();
+    return result;
   }
 
   // ========================================
@@ -101,10 +123,7 @@ export class SatochipCard extends BaseCard {
 
   async logoutAll(): Promise<void> {
     await logoutAll(this.secureChannel);
-    // Clear all PIN verification states
-    this.pinVerified.clear();
-    this.pinVerified.set(0, false);
-    this.pinVerified.set(1, false);
+    this.resetPinState();
   }
 
   // Helper methods
@@ -265,6 +284,30 @@ export class SatochipCard extends BaseCard {
   async signTransactionHash(keynumber: number, txHash: Buffer, hmac: Buffer = Buffer.alloc(0)): Promise<Buffer> {
     console_log(`In protocol signTransactionHash keynumber: ${keynumber} - txHash: ${txHash.toString('hex')}`);
     return await signTransactionHash(this.secureChannel, keynumber, txHash, hmac);
+  }
+
+  /**
+   * Prepare a key for BIP340 Schnorr signing by applying the Taproot tweak.
+   * Must be called before signSchnorrHash() for the same key.
+   * @param keynbr - The key to use (0xFF for the last derived BIP32 key)
+   * @param tweak - optional 32-byte tweak (BIP341 script tree hash); none by default
+   * @param bypass - if true, skip the tweak (e.g. Nostr, which signs with the untweaked key)
+   */
+  async taprootTweakPrivkey(keynbr: number, tweak: Buffer | null = null, bypass = false): Promise<Buffer> {
+    console_log(`In protocol taprootTweakPrivkey keynbr: ${keynbr} - bypass: ${bypass}`);
+    return await taprootTweakPrivkey(this.secureChannel, keynbr, tweak, bypass);
+  }
+
+  /**
+   * Sign a 32-byte hash with BIP340 Schnorr (call taprootTweakPrivkey() first).
+   * @param keynbr - The key to use (0xFF for the last derived BIP32 key)
+   * @param hash - 32-byte hash to sign
+   * @param hmac - optional 20-byte hmac (when 2FA is enabled, experimental)
+   * @returns 64-byte Schnorr signature
+   */
+  async signSchnorrHash(keynbr: number, hash: Buffer, hmac: Buffer = Buffer.alloc(0)): Promise<Buffer> {
+    console_log(`In protocol signSchnorrHash keynbr: ${keynbr} - hash: ${hash.toString('hex')}`);
+    return await signSchnorrHash(this.secureChannel, keynbr, hash, hmac);
   }
 
   // ========================================

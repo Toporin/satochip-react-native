@@ -40,12 +40,14 @@ export function requiresSecureChannel(ins: number): boolean {
     // Signing commands that need encryption
     0x6E, // INS_SIGN_MESSAGE
     0x7A, // INS_SIGN_TRANSACTION_HASH
+    0x7B, // INS_SIGN_SCHNORR_HASH
+    0x7C, // INS_TAPROOT_TWEAK_PRIVKEY
     0x71, // INS_PARSE_TRANSACTION
     0x6F, // INS_SIGN_TRANSACTION
     
     // Sensitive configuration commands
     0x3A, // INS_SET_FEATURE_POLICY (some cases)
-    0xFF, // INS_RESET_TO_FACTORY
+    // INS_RESET_TO_FACTORY (0xFF) is sent in plain: see core resetToFactory()
   ];
   
   return secureChannelCommands.includes(ins);

@@ -30,7 +30,7 @@ import {
 import { normalizeUnlockSecret } from './unlock';
 
 export class SatodimeCard extends BaseCard {
-  protected readonly aid = SATODIME_AID;
+  protected readonly aid: Buffer = SATODIME_AID;
   readonly deviceType = 'Satodime' as const;
   protected readonly strictSelect = true;
 

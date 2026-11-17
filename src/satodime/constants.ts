@@ -4,7 +4,7 @@
  */
 export const SATODIME_CLA = 0xB0;
 /** "SatoDime" (selected by prefix; the installed instance AID is 5361746f44696d6500). */
-export const SATODIME_AID = Buffer.from('5361746f44696d65', 'hex');
+export const SATODIME_AID: Buffer = Buffer.from('5361746f44696d65', 'hex');
 
 export const INS_SETUP = 0x2A;
 export const INS_GET_STATUS = 0x3C;

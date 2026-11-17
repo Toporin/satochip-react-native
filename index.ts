@@ -22,7 +22,7 @@ export {
   parseCardVersion,
   formatCardVersion,
 } from './src/core';
-export type { CardType, CardVersion, ChallengeResponseResult } from './src/core';
+export type { CardType, CardVersion, ChallengeResponseResult, FactoryResetResult } from './src/core';
 
 // Satodime support
 export {
