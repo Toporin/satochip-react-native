@@ -1,9 +1,14 @@
 // Map node's `crypto` module to react-native-quick-crypto (see metro.config.js).
-// Export a plain object holding the named exports and the default export's
-// members, so that `import * as crypto from 'crypto'` (used by the library) and
-// `import crypto from 'crypto'` both work.
-// Do not include a `default` key: Babel's namespace interop defines every key
-// as a getter and then assigns `default`, which throws if the key exists.
-const { default: quickCryptoDefault, ...namedExports } = require('react-native-quick-crypto');
+//
+// react-native-quick-crypto does `module.exports = QuickCrypto` and then
+// `module.exports.default = QuickCrypto`, so the object has its own `default`
+// key. With `import * as crypto from 'crypto'` (used by the library), Metro's
+// namespace interop defines every key as a getter and then assigns `default`,
+// which throws "Cannot assign to property 'default' which has only a getter".
+// Export a copy without the `default` key: both `import * as crypto` and
+// `import crypto from 'crypto'` then resolve to the QuickCrypto API.
+const quickCrypto = require('react-native-quick-crypto');
 
-module.exports = { ...namedExports, ...(quickCryptoDefault || {}) };
+const { default: _default, ...cryptoApi } = quickCrypto;
+
+module.exports = cryptoApi;
