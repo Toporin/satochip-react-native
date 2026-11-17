@@ -147,7 +147,8 @@ export function HomeScreen() {
         const eventId = Buffer.from(sha256.create().update(serializedEvent).digest());
 
         try {
-          await card.prepareSchnorrKey(keyNumber, true);
+          // Nostr signs with the untweaked key: bypass the Taproot tweak.
+          await card.taprootTweakPrivkey(keyNumber, null, true);
         } catch (preparationError) {
           throw new Error(`Schnorr key preparation failed: ${getErrorMessage(preparationError)}`);
         }

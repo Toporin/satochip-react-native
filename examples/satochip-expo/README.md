@@ -58,6 +58,11 @@ npm start
 
 The package dependency uses `file:../..`, so app installs and Metro resolve the library directly from this repository.
 
+Metro only resolves packages from this app's `node_modules` (see `metro.config.js`),
+so every runtime dependency of the library (`dependencies` in the root
+`package.json`) must also be listed in this app's `package.json`. Node's `crypto`
+module is mapped to `react-native-quick-crypto` by `shims/crypto.js`.
+
 ## Sign a Nostr message
 
 The **Sign message** action derives the NIP-06 account-0 key at
