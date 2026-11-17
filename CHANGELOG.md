@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.9]: 
+
+feat: factory reset, Schnorr signing and Expo example app (from PR #1)
+
+- New Expo example app in `examples/satochip-expo` (card status, setup, Nostr
+  signing with BIP340 Schnorr, factory reset). It is excluded from the npm
+  package (`files` whitelist) and from the root lint/tsc/jest runs.
+- Factory reset: shared `resetToFactory()` in `src/core/commands/common.ts`
+  (INS 0xFF, sent in plain; reusable by other applets) and
+  `SatochipCard.factoryReset()` returning `{ complete, remaining }`.
+- Schnorr: `SatochipCard.taprootTweakPrivkey(keynbr, tweak?, bypass?)` (INS 0x7C)
+  and `SatochipCard.signSchnorrHash(keynbr, hash, hmac?)` (INS 0x7B).
+- iOS: `nfcWrapper()` now always closes the NFC session (system sheet) when
+  the callback returns or throws.
+- Typings: TypeScript declarations are generated into `types/`
+  (`yarn build:types`) and referenced by `types` in `package.json`, so
+  consumers with a strict tsconfig do not type-check the library sources.
+
+fix: signing commands no longer require the secure channel to be already
+established; it is established lazily like for every other secure command
+(signing as the first command after `nfcWrapper`'s SELECT used to fail).
+
+chore: drop the `ripemd160` dependency, RIPEMD-160 now uses
+`crypto.createHash('ripemd160')` from the crypto shim.
+
 ## [0.1.8]: 
 
 feat: Satodime support and shared card core

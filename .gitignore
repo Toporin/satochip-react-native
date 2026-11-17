@@ -123,5 +123,8 @@ package-lock.json
 .vscode
 .vs
 
+# Keep the Expo example installation reproducible
+!examples/satochip-expo/package-lock.json
+
 # Android memory profiler files
 *.hprof

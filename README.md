@@ -74,6 +74,13 @@ Lint the library with
 yarn lint
 ```
 
+## TYPES
+The package ships TypeScript declarations in `types/`, generated from the sources.
+Regenerate (and commit) them whenever the public API changes:
+```zsh
+yarn build:types
+```
+
 # Usage Example
 
 ```typescript
@@ -126,9 +133,19 @@ await card.endNfcSession(); // either call is on component unmount or post card.
 
 **NOTE**
 * Place the card for the NFC scan before **card.nfcWrapper** is called. There is no need to remove the card until the wrapper completes the callback.
-* iOS has it's own system NFC interaction to let the user know that the NFC is active.
+* iOS has it's own system NFC interaction to let the user know that the NFC is active. The NFC session is closed automatically when `nfcWrapper` returns or throws.
 * Android has no interaction as such. You can use your own modal/interaction which can open and close before/after the callback to card.nfcWrapper.
-* [Demo app with detailed usage of the library](todo).
+* See the [Expo example app](examples/satochip-expo) for a complete usage example (card status, setup, Nostr/Schnorr signing, factory reset).
+
+## Crypto shim
+The library imports node's `crypto` module (random bytes, AES, SHA-256, RIPEMD-160...). In React Native,
+it must be provided by a shim such as `crypto-browserify` (rn-nodeify) or `react-native-quick-crypto`
+(see the example app's `metro.config.js` and `shims/crypto.js`).
+
+# Example app
+
+[`examples/satochip-expo`](examples/satochip-expo) is an Expo (development build) app that uses the library
+from this repository. It is not part of the published package (see `files` in `package.json`).
 
 # Acknowledgement
 
