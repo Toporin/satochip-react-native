@@ -1,0 +1,63 @@
+{
+  "name": "satochip-expo",
+  "main": "index.js",
+  "version": "1.0.0",
+  "dependencies": {
+    "asn1js": "^3.0.10",
+    "bech32": "^2.0.0",
+    "bip32": "^4.0.0",
+    "bip39": "^3.1.0",
+    "bs58": "^5.0.0",
+    "buf-b32": "^2.2.0",
+    "buffer": "^6.0.3",
+    "buffer-xor": "^2.0.2",
+    "elliptic": "^6.6.1",
+    "expo": "~57.0.11",
+    "expo-clipboard": "~57.0.1",
+    "expo-constants": "~57.0.9",
+    "expo-dev-client": "~57.0.10",
+    "expo-linking": "~57.0.5",
+    "expo-router": "~57.0.11",
+    "expo-splash-screen": "~57.0.5",
+    "expo-status-bar": "~57.0.1",
+    "js-sha256": "^0.9.0",
+    "react": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-nfc-manager": "^3.17.2",
+    "react-native-quick-crypto": "^1.1.6",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "satochip-react-native": "file:../..",
+    "secp256k1": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@types/react": "~19.2.2",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~57.0.1",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "ios:device": "expo run:ios --device",
+    "prebuild": "expo prebuild",
+    "doctor": "npx expo-doctor",
+    "typecheck": "tsc --noEmit",
+    "lint": "expo lint"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "react-native-nfc-manager"
+        ]
+      }
+    }
+  },
+  "private": true
+}
