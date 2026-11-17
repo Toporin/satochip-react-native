@@ -1,14 +1,25 @@
 {
   "name": "satochip-react-native",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Satochip protocol support in javascript",
   "main": "index.ts",
+  "types": "types/index.d.ts",
+  "files": [
+    "index.ts",
+    "types.d.ts",
+    "src",
+    "types",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "type": "module",
   "scripts": {
     "prepare": "echo skip",
     "test": "jest",
     "prettier": "npx prettier --write .",
-    "lint": "npx eslint '**/*.ts' --ignore-pattern node_modules/"
+    "lint": "npx eslint '**/*.ts' --ignore-pattern node_modules/ --ignore-pattern examples/ --ignore-pattern types/",
+    "build:types": "tsc -p tsconfig.types.json"
   },
   "keywords": [
     "satochip",
@@ -25,7 +36,6 @@
     "buffer-xor": "2.0.2",
     "elliptic": "^6.6.1",
     "js-sha256": "0.9.0",
-    "ripemd160": "2.0.2",
     "secp256k1": "4.0.3"
   },
   "peerDependencies": {

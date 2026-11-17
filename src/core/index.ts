@@ -7,4 +7,4 @@ export { detectCardType, CARD_AIDS } from './detect';
 export type { CardType } from './detect';
 export { parseCardVersion, formatCardVersion } from './status';
 export type { CardVersion } from './status';
-export type { ChallengeResponseResult, SecureSender } from './commands/common';
+export type { ChallengeResponseResult, FactoryResetResult, SecureSender } from './commands/common';

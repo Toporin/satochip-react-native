@@ -509,6 +509,5 @@ declare module 'react-native' {
   export const Platform: PlatformIOSStatic | PlatformAndroidStatic;
 }
 
-declare module 'ripemd160';
 declare module 'secp256k1';
 declare module 'buffer-xor';

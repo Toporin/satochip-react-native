@@ -85,6 +85,10 @@ export abstract class BaseCard {
           return await callback();
         } catch (error) {
           this.handleError(error);
+        } finally {
+          // iOS shows a blocking system NFC sheet: always close the session so
+          // that it dismisses, after success or failure.
+          await closeConnection().catch(() => undefined);
         }
       },
     });

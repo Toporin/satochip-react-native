@@ -74,6 +74,13 @@ Lint the library with
 yarn lint
 ```
 
+## TYPES
+The package ships TypeScript declarations in `types/`, generated from the sources.
+Regenerate (and commit) them whenever the public API changes:
+```zsh
+yarn build:types
+```
+
 # Usage Example
 
 ```typescript
@@ -126,9 +133,43 @@ await card.endNfcSession(); // either call is on component unmount or post card.
 
 **NOTE**
 * Place the card for the NFC scan before **card.nfcWrapper** is called. There is no need to remove the card until the wrapper completes the callback.
-* iOS has it's own system NFC interaction to let the user know that the NFC is active.
+* iOS has it's own system NFC interaction to let the user know that the NFC is active. The NFC session is closed automatically when `nfcWrapper` returns or throws.
 * Android has no interaction as such. You can use your own modal/interaction which can open and close before/after the callback to card.nfcWrapper.
-* [Demo app with detailed usage of the library](todo).
+* See the [Expo example app](examples/satochip-expo) for a complete usage example (card status, setup, Nostr/Schnorr signing, factory reset).
+
+## Crypto shim
+The library imports node's `crypto` module (random bytes, AES, SHA-256, RIPEMD-160...). In React Native,
+it must be provided by a shim such as `crypto-browserify` (rn-nodeify) or `react-native-quick-crypto`
+(see the example app's `metro.config.js` and `shims/crypto.js`).
+
+**react-native-quick-crypto with Expo:** do not map `crypto` directly to the package. It sets
+`module.exports.default` to itself, and with Expo's import transform (`expo/metro-config`) the library's
+`import * as crypto from 'crypto'` then fails at startup with
+`Cannot assign to property 'default' which has only a getter`. Map `crypto` to a small shim that removes
+the `default` key instead (harmless with other setups). Bare React Native apps using
+`@react-native/babel-preset` are not affected: its interop helper skips the `default` key, so a plain
+alias (e.g. babel-plugin-module-resolver `crypto: 'react-native-quick-crypto'`) works.
+
+```js
+// shims/crypto.js
+const { default: _default, ...cryptoApi } = require('react-native-quick-crypto');
+module.exports = cryptoApi;
+```
+
+```js
+// metro.config.js
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === 'crypto') {
+    return { type: 'sourceFile', filePath: path.resolve(__dirname, 'shims/crypto.js') };
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
+```
+
+# Example app
+
+[`examples/satochip-expo`](examples/satochip-expo) is an Expo (development build) app that uses the library
+from this repository. It is not part of the published package (see `files` in `package.json`).
 
 # Acknowledgement
 

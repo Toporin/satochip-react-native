@@ -5,7 +5,7 @@
  */
 import * as crypto from 'crypto';
 import { transmitAPDU } from '../apdu';
-import { CardError } from '../errors';
+import { CardError, ResponseChecker } from '../errors';
 import { CARD_CLA } from './secureChannel';
 import { APDUCommand, APDUResponse } from '../../satochip/types';
 import { CardDataParser } from '../../satochip/parser';
@@ -22,12 +22,21 @@ export const INS_EXPORT_AUTHENTIKEY = 0xAD;
 export const INS_EXPORT_PKI_CERTIFICATE = 0x93;
 export const INS_EXPORT_PKI_PUBKEY = 0x98;
 export const INS_CHALLENGE_RESPONSE_PKI = 0x9A;
+export const INS_RESET_TO_FACTORY = 0xFF;
 export const OP_INIT = 0x01;
 export const OP_PROCESS = 0x02;
 
 export interface ChallengeResponseResult {
   success: boolean;
   error: string;
+}
+
+/** Progress of the multi-presentation factory-reset sequence. */
+export interface FactoryResetResult {
+  /** True once the card has been reset to factory state. */
+  complete: boolean;
+  /** Number of card presentations still required (0 when complete). */
+  remaining: number;
 }
 
 /** ISO SELECT by AID (sent in plain, status word not checked). */
@@ -38,6 +47,35 @@ export async function selectAid(aid: Buffer): Promise<APDUResponse> {
 /** GET_STATUS (INS 0x3C, sent in plain, status word not checked). */
 export async function getRawStatus(): Promise<APDUResponse> {
   return transmitAPDU({ cla: CARD_CLA, ins: INS_GET_STATUS, p1: 0x00, p2: 0x00 });
+}
+
+/**
+ * Advance the factory-reset sequence by one card presentation (INS 0xFF).
+ *
+ * The command is sent in plain: the applet requires several separate card
+ * presentations with no other command (except SELECT) in between, so no
+ * secure channel can be established. The card answers 0xFF00 when the reset
+ * is complete, 0xFF01..0xFF0F with the number of presentations remaining, and
+ * 0xFFFF if the sequence was interrupted.
+ */
+export async function resetToFactory(check: ResponseChecker): Promise<FactoryResetResult> {
+  const rapdu = await transmitAPDU({ cla: CARD_CLA, ins: INS_RESET_TO_FACTORY, p1: 0x00, p2: 0x00 });
+  if (rapdu.statusWord === 0xFFFF) {
+    throw new CardError(
+      rapdu.statusWord,
+      'SW_RESET_TO_FACTORY_ABORTED',
+      'Factory reset was interrupted: start the sequence again',
+    );
+  }
+  if (rapdu.sw1 === 0xFF) {
+    return { complete: rapdu.sw2 === 0x00, remaining: rapdu.sw2 };
+  }
+  check(rapdu.sw1, rapdu.sw2); // throws the card-specific error
+  throw new CardError(
+    rapdu.statusWord,
+    'SW_UNKNOWN',
+    `Unexpected factory reset status: 0x${rapdu.statusWord.toString(16).toUpperCase()}`,
+  );
 }
 
 /** Export the card authentikey and check it against the secure-channel candidates. */

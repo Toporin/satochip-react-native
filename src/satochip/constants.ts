@@ -2,7 +2,7 @@
 export const SATOCHIP_CLA = 0xB0;
 
 // Satochip applet AID
-export const SATOCHIP_AID = Buffer.from('5361746f43686970', 'hex'); // "SatoChip" in ASCII
+export const SATOCHIP_AID: Buffer = Buffer.from('5361746f43686970', 'hex'); // "SatoChip" in ASCII
 
 // Instruction codes for Satochip commands
 export const INS_SELECT = 0xA4;
@@ -33,6 +33,8 @@ export const INS_EXPORT_AUTHENTIKEY = 0xAD;
 // Signing commands
 export const INS_SIGN_MESSAGE = 0x6E;
 export const INS_SIGN_TRANSACTION_HASH = 0x7A;
+export const INS_SIGN_SCHNORR_HASH = 0x7B;
+export const INS_TAPROOT_TWEAK_PRIVKEY = 0x7C;
 export const INS_PARSE_TRANSACTION = 0x71;
 export const INS_SIGN_TRANSACTION = 0x6F;
 
