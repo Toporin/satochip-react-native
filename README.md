@@ -142,6 +142,27 @@ The library imports node's `crypto` module (random bytes, AES, SHA-256, RIPEMD-1
 it must be provided by a shim such as `crypto-browserify` (rn-nodeify) or `react-native-quick-crypto`
 (see the example app's `metro.config.js` and `shims/crypto.js`).
 
+**react-native-quick-crypto:** do not map `crypto` directly to the package. It sets
+`module.exports.default` to itself, and the library's `import * as crypto from 'crypto'` then fails at
+startup with `Cannot assign to property 'default' which has only a getter`. Map `crypto` to a small shim
+that removes the `default` key instead:
+
+```js
+// shims/crypto.js
+const { default: _default, ...cryptoApi } = require('react-native-quick-crypto');
+module.exports = cryptoApi;
+```
+
+```js
+// metro.config.js
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === 'crypto') {
+    return { type: 'sourceFile', filePath: path.resolve(__dirname, 'shims/crypto.js') };
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
+```
+
 # Example app
 
 [`examples/satochip-expo`](examples/satochip-expo) is an Expo (development build) app that uses the library
