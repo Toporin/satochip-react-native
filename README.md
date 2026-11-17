@@ -142,10 +142,13 @@ The library imports node's `crypto` module (random bytes, AES, SHA-256, RIPEMD-1
 it must be provided by a shim such as `crypto-browserify` (rn-nodeify) or `react-native-quick-crypto`
 (see the example app's `metro.config.js` and `shims/crypto.js`).
 
-**react-native-quick-crypto:** do not map `crypto` directly to the package. It sets
-`module.exports.default` to itself, and the library's `import * as crypto from 'crypto'` then fails at
-startup with `Cannot assign to property 'default' which has only a getter`. Map `crypto` to a small shim
-that removes the `default` key instead:
+**react-native-quick-crypto with Expo:** do not map `crypto` directly to the package. It sets
+`module.exports.default` to itself, and with Expo's import transform (`expo/metro-config`) the library's
+`import * as crypto from 'crypto'` then fails at startup with
+`Cannot assign to property 'default' which has only a getter`. Map `crypto` to a small shim that removes
+the `default` key instead (harmless with other setups). Bare React Native apps using
+`@react-native/babel-preset` are not affected: its interop helper skips the `default` key, so a plain
+alias (e.g. babel-plugin-module-resolver `crypto: 'react-native-quick-crypto'`) works.
 
 ```js
 // shims/crypto.js
