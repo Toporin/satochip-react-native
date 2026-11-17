@@ -27,6 +27,16 @@ fix: signing commands no longer require the secure channel to be already
 established; it is established lazily like for every other secure command
 (signing as the first command after `nfcWrapper`'s SELECT used to fail).
 
+fix: `SatochipCard.signMessage()` always failed:
+- the signing pubkey was declared in a nested scope, so `undefined` was used
+  to compute the compact signature;
+- `ECPubkey.fromSigString()` passed the hash to elliptic as a hex string,
+  which elliptic parses as a base-10 number, recovering a wrong pubkey.
+For BIP32 keys (0xFF), the last `getExtendedKey()` path is now derived before
+signing, so the signed key always matches the pubkey (`getXpub()`,
+`getMasterXfp()` or a new card session change the card's current key).
+Keyslot numbers are checked against 0..15 (16 was accepted).
+
 chore: drop the `ripemd160` dependency, RIPEMD-160 now uses
 `crypto.createHash('ripemd160')` from the crypto shim.
 

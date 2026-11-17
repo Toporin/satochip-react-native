@@ -22,8 +22,10 @@ export class ECPubkey {
 
     const signature = { r: r.toString('hex'), s: s.toString('hex') };
     console_log(`In parser ECPubkey fromSigString signature: ${signature}`);
+    // Pass the hash as bytes: elliptic parses a string message with `new BN(msg)`,
+    // i.e. as a base-10 number, which would recover the wrong public key.
     const recoveredPubkey = ec.recoverPubKey(
-      hash.toString('hex'),
+      hash,
       signature,
       recid
     );

@@ -251,28 +251,28 @@ export class SatochipCard extends BaseCard {
 
   /**
    * Sign a message hash with a static or BIP32 derived key
-   * @param keynbr
+   * @param keynbr - keyslot number (0..MAX_NUM_KEYS-1), or 0xFF for the BIP32 key
+   *   at the path of the last getExtendedKey() call (master key by default)
    * @param msgHash - 32-byte hash to sign
    * @param hmac - optional 20-byte hmac (when 2FA is enabled, experimental)
+   * @returns 65-byte compact signature (header byte + r + s)
    */
   async signMessage(keynbr: number, msgHash: Buffer, hmac: Buffer = Buffer.alloc(0)): Promise<Buffer> {
-    const derSig =  await signTransactionHash(this.secureChannel, keynbr, msgHash, hmac);
-
-    // recover pubkey (needed to compute compact signature)
+    // Get the signing pubkey, needed to compute the compact signature recovery id.
+    // For BIP32, derive the key right before signing: other calls (getXpub,
+    // getMasterXfp) or a new card session may have changed the card's current key.
     let pubkey: ECPubkey;
-    if (keynbr==0xff){
-      // get extended key
-      const pubkey = await this.getExtendedKey(this.lastBip32Path);
-    } else if (keynbr>=0 && keynbr<=MAX_NUM_KEYS){
-      // get pubkey from keyslot
-      const pubkey = await this.getPubkeyFromKeyslot(keynbr);
+    if (keynbr === 0xff) {
+      const extendedKey = await this.getExtendedKey(this.lastBip32Path);
+      pubkey = new ECPubkey(extendedKey.pubkey);
+    } else if (keynbr >= 0 && keynbr < MAX_NUM_KEYS) {
+      pubkey = await this.getPubkeyFromKeyslot(keynbr);
     } else {
-      throw new SatochipError(`Wrong key number: ${keynbr}`)
+      throw new SatochipError(`Wrong key number: ${keynbr}`);
     }
 
-    // convert to compact sig
-    const compactSig= CardDataParser.parseMessageSignature(derSig, msgHash, pubkey);
-    return compactSig;
+    const derSig = await signTransactionHash(this.secureChannel, keynbr, msgHash, hmac);
+    return CardDataParser.parseMessageSignature(derSig, msgHash, pubkey);
   }
 
   /**

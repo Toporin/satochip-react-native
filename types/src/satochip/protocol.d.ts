@@ -62,9 +62,11 @@ export declare class SatochipCard extends BaseCard {
     getMasterXfp(): Promise<string>;
     /**
      * Sign a message hash with a static or BIP32 derived key
-     * @param keynbr
+     * @param keynbr - keyslot number (0..MAX_NUM_KEYS-1), or 0xFF for the BIP32 key
+     *   at the path of the last getExtendedKey() call (master key by default)
      * @param msgHash - 32-byte hash to sign
      * @param hmac - optional 20-byte hmac (when 2FA is enabled, experimental)
+     * @returns 65-byte compact signature (header byte + r + s)
      */
     signMessage(keynbr: number, msgHash: Buffer, hmac?: Buffer): Promise<Buffer>;
     /**

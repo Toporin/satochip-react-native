@@ -108,3 +108,61 @@ describe('Schnorr signing commands (secure transport mocked)', () => {
     await expect(signSchnorrHash({}, 0xff, HASH)).rejects.toThrow('Invalid Schnorr signature length');
   });
 });
+
+describe('SatochipCard.signMessage (card mocked)', () => {
+  const { ec: EC } = require('elliptic');
+  const { ECPubkey } = require('../src/satochip/utils/ECKey');
+  const secp = new EC('secp256k1');
+  const key = secp.keyFromPrivate('11'.repeat(32), 'hex');
+  const compressedPubkey = Buffer.from(key.getPublic(true, 'array'));
+  const derSig = Buffer.from(key.sign(HASH, { canonical: true }).toDER());
+
+  let calls;
+  function makeCard() {
+    calls = [];
+    const card = new SatochipCard();
+    jest.spyOn(card, 'getExtendedKey').mockImplementation(async (path) => {
+      calls.push(`derive ${path}`);
+      return { pubkey: compressedPubkey, chaincode: Buffer.alloc(32) };
+    });
+    jest.spyOn(card, 'getPubkeyFromKeyslot').mockImplementation(async (keynbr) => {
+      calls.push(`keyslot ${keynbr}`);
+      return new ECPubkey(compressedPubkey);
+    });
+    jest.spyOn(apduSecure, 'sendSecureAPDU').mockImplementation(async (command) => {
+      calls.push(`sign ${command.p1}`);
+      return { data: derSig, sw1: 0x90, sw2: 0x00, statusWord: 0x9000 };
+    });
+    return card;
+  }
+
+  function recoverCompact(compact) {
+    const recid = (compact[0] - 27) & 3;
+    return ECPubkey.fromSigString(compact.slice(1), recid, HASH).getPublicKeyBytes(true);
+  }
+
+  afterEach(() => jest.restoreAllMocks());
+
+  test('BIP32 key: derives the last path before signing, returns a recoverable compact signature', async () => {
+    const card = makeCard();
+    card.lastBip32Path = "m/44'/0'/0'/0/0";
+    const compact = await card.signMessage(0xff, HASH);
+    expect(calls).toEqual(["derive m/44'/0'/0'/0/0", 'sign 255']);
+    expect(compact.length).toBe(65);
+    expect(compact[0]).toBeGreaterThanOrEqual(31); // compressed-key header
+    expect(recoverCompact(compact)).toEqual(compressedPubkey);
+  });
+
+  test('keyslot key: reads the keyslot pubkey', async () => {
+    const card = makeCard();
+    const compact = await card.signMessage(3, HASH);
+    expect(calls).toEqual(['keyslot 3', 'sign 3']);
+    expect(recoverCompact(compact)).toEqual(compressedPubkey);
+  });
+
+  test('rejects an invalid key number before talking to the card', async () => {
+    const card = makeCard();
+    await expect(card.signMessage(16, HASH)).rejects.toThrow('Wrong key number: 16');
+    expect(calls).toEqual([]);
+  });
+});
